@@ -1,0 +1,83 @@
+/* colors.css */
+
+:root {
+    --dark: #222;
+    --light: #fff;
+    --grey: #888;
+    --lightgrey: #ccc;
+    --exlightgrey: #eee;
+    --lightgrey200: #aaaaaa22;
+    --lightgrey500: #aaaaaa88;
+    --lightdark: #555;
+    --black: #000;
+    --black500: #00000088;
+    --black050: #00000011;
+    --white: #fff;
+    --white500: #ffffff88;
+    --theme: #c51835;
+    --red: #cb4042;
+    --green: #3fcd44;
+    background: var(--white);
+}
+
+.SummerTheme:root {
+    --light: #fff771;
+    --theme: #d2963f;
+}
+
+.RainTheme:root {
+    --light: #8ddcff;
+    --theme: #46a8c5;
+}
+
+.TeaTheme:root {
+    --light: #e4ffce;
+    --theme: #8bc34a;
+}
+
+.WatermelonTheme:root {
+    --light: #ffe0d7;
+    --theme: #e15d61;
+}
+
+.DarkerTheme {
+    --dark: #fff;
+    --light: #222;
+    --lightgrey: #555;
+    --lightdark: #ccc;
+    --exlightgrey: #333;
+    --black: #fff;
+    --white: #222;
+    --white500: #00000088;
+    --black500: #ffffff88;
+    --black050: #ffffff11;
+    --theme: #57c4d2;
+}
+
+.DarkerTheme * {
+    color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not(.custom-theme) {
+        --dark: #fff;
+        --light: #222;
+        --lightgrey: #555;
+        --lightdark: #ccc;
+        --exlightgrey: #333;
+        --black: #fff;
+        --white: #222;
+        --white500: #00000088;
+        --black500: #ffffff88;
+        --black050: #ffffff11;
+        --theme: #57c4d2;
+    }
+
+    :root:not(.custom-theme) * {
+        color: #aaa;
+    }
+}
+
+.theme-color {
+    color: var(--theme);
+}

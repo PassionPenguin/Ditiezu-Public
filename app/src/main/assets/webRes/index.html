@@ -1,0 +1,775 @@
+<!-- Made by Penguin -->
+<!doctype html>
+<html lang="zh_CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Index Page</title>
+    <link href="./assets/styles/styles.css" rel="stylesheet">
+</head>
+<body>
+<div class="topNav no_back">
+    <div class="container">
+        <div class="leftToggle mi">chevron_left</div>
+        <div class="centerText">Ditiezu<small>PassionPenguin</small></div>
+        <div class="rightToggle mi">menu</div>
+    </div>
+</div>
+<div id="pg-app"></div>
+<div class="bottomNav">
+    <div class="bottomToggle"><span class="mi theme-color">home</span><span class="description">主页</span></div>
+    <div class="bottomToggle"><span class="mi">notifications</span><span class="description">提醒</span></div>
+    <div class="bottomToggle"><span class="mi">person</span><span class="description">个人</span></div>
+    <div class="bottomToggle"><span class="mi">settings</span><span class="description">设置</span></div>
+</div>
+</body>
+<script src="./assets/scripts/lib.js"></script>
+<script>
+    window.projCurStatus = 1; // 0->Dev 1->Prod
+    window.getXHRResponse = () => {
+    };
+    if (typeof android === "undefined")
+        window.android = {};
+    window.sys = {
+        XHR: typeof android.XHR !== "undefined" ? (target, execFunc) => {
+            if (execFunc !== undefined) {
+                let res = android.XHR(target);
+                execFunc(res, 200);
+            } else
+                return android.XHR(target)
+        } : (target, execFunc) => {
+            let xhr = new XMLHttpRequest();
+            xhr.open("get", "http://127.0.0.1/xhrLocalDev.php?target=" + encodeURIComponent(target));
+            xhr.send();
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (execFunc !== undefined)
+                        execFunc(xhr.responseText, xhr.status);
+                    else
+                        return xhr.responseText;
+                }
+            }
+        },
+        XHRPOST: typeof android.XHRPOST !== "undefined" ? (type, fid, tid, subject, message, formhash) => {
+            android.XHR(type, fid, tid, subject, message, formhash)
+        } : (type, fid, tid, subject, message, formhash) => {
+            let xhr = new XMLHttpRequest();
+            xhr.open("get", "http://127.0.0.1/index.php?type=" + type + "&fid=" + fid + "&tid=" + tid + "&subject=" + subject + "&message=" + message + "&formhash=" + formhash);
+            xhr.send();
+        }, downloadFile: typeof android.downloadFile !== "undefined" ? (targetUrl, filename) => {
+            android.downloadFile(targetUrl, filename);
+        } : (targetUrl, filename) => {
+            let e = cE({type: "a", attr: [["href", targetUrl], ["download", filename]]});
+            e.click();
+        }, shareImage: typeof android.shareImage !== "undefined" ? (targetUrl) => {
+            android.shareImage(targetUrl);
+        } : (targetUrl) => {
+            pg.alert("电脑端不支持分享照片", "ERR_DESKTOP_REJECT_SHARE", "ShareImage", () => {
+            })
+        }
+    };
+
+    window.mainPage = () => {
+        try {
+            [...pg.$("#pg-app-filter-categorySelector")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+            [...pg.$("#pg-categorySelectorWrap")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+            [...pg.$("#threadUtilCtrlWrap")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+        } catch (e) {
+        }
+        if (!window.navigator.onLine)
+            pg.alert("No Internet Connection", "ERR_INTERNET_DISCONNECTED", "Onload/Onpopstate Func", () => {
+            });
+        let loadingInf = pg.$("#loadingInf").length === 0 ? cE({
+            type: "div",
+            attr: [["style", "position:fixed;bottom:56px;width:100%;left:0;height:32px;font-size:14px;padding-left:20px;line-height:24px;background:var(--white);white-space:pre-wrap;overflow:hidden;"], ["id", "loadingInf"]],
+            innerHTML: "Fetching Data... " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"})
+        }) : pg.$("#loadingInf")[0];
+        document.body.append(loadingInf);
+        pg.$(".topNav")[0].classList.add("no_back");
+        let app = pg.$("#pg-app")[0];
+        app.innerHTML = "";
+        let xhr = new XMLHttpRequest();
+        xhr.open("get", "http://ditiezu.com");
+        xhr.send();
+        xhr.onreadystatechange = () => {
+            history.pushState({
+                "mod": "index",
+            }, "", "?mod=index");
+            if (xhr.readyState === 4 && xhr.status !== 200) {
+                loadingInf.innerHTML = "ErrCode:" + xhr.status;
+            } else if (xhr.readyState === 4) {
+                {
+                    let categorys = cE({
+                        type: "div",
+                        attr: [["id", "pg-categorySelectorWrap"]],
+                        innerHTML: "<span>选择分区</span>"
+                    });
+                    let filter = cE({type: "div", attr: [["id", "pg-app-filter-categorySelector"]]});
+                    document.body.append(filter);
+                    [
+                        {
+                            title: "都市地铁",
+                            subCategory: [{name: "北京区", fid: 7}, {name: "天津区", fid: 6}, {name: "上海区", fid: 8}, {
+                                name: "广州区",
+                                fid: 23
+                            }, {name: "长春区", fid: 40}, {name: "大连区", fid: 41}, {name: "武汉区", fid: 39}, {
+                                name: "重庆区",
+                                fid: 38
+                            }, {name: "深圳区", fid: 24}, {name: "南京区", fid: 22}, {name: "成都区", fid: 53}, {
+                                name: "沈阳区",
+                                fid: 50
+                            }, {name: "佛山区", fid: 56}, {name: "西安区", fid: 54}, {name: "苏州区", fid: 51}, {
+                                name: "昆明区",
+                                fid: 70
+                            }, {name: "杭州区", fid: 52}, {name: "哈尔滨区", fid: 55}, {name: "郑州区", fid: 64}, {
+                                name: "长沙区",
+                                fid: 67
+                            }, {name: "宁波区", fid: 65}, {name: "无锡区", fid: 68}, {name: "青岛区", fid: 66}, {
+                                name: "南昌区",
+                                fid: 71
+                            }, {name: "福州区", fid: 72}, {name: "东莞区", fid: 75}, {name: "南宁区", fid: 73}, {
+                                name: "合肥区",
+                                fid: 74
+                            }, {name: "石家庄区", fid: 140}, {name: "贵阳区", fid: 76}, {name: "厦门区", fid: 77}, {
+                                name: "乌鲁木齐区",
+                                fid: 143
+                            }, {name: "温州区", fid: 142}, {name: "济南区", fid: 148}, {name: "兰州区", fid: 78}, {
+                                name: "常州区",
+                                fid: 48
+                            }, {name: "徐州区", fid: 144}, {name: "呼和浩特区", fid: 151}, {name: "香港区", fid: 28}, {
+                                name: "澳门区",
+                                fid: 79
+                            }, {name: "台湾区", fid: 36}, {name: "海外区", fid: 47}, {name: "综合区", fid: 37}]
+                        }, {title: "轨道文化", subCategory: [{name: "轨道收藏", fid: 33}, {name: "都市风情", fid: 16}]}, {
+                        title: "生活休闲",
+                        subCategory: [{name: "地铁房产", fid: 31}, {name: "地铁美食", fid: 15}, {name: "交易市场", fid: 60}, {
+                            name: "轨交游戏",
+                            fid: 145
+                        }, {name: "站前广场", fid: 21}]
+                    }, {
+                        title: "铁道讨论",
+                        subCategory: [{name: "城际高铁", fid: 46}, {name: "机车车辆", fid: 45}, {name: "轨道知识", fid: 43}]
+                    }, {title: "合作分区", subCategory: [{name: "地铁的真相", fid: 150}, {name: "都市快轨交通", fid: 152}]}, {
+                        title: "管理专区",
+                        subCategory: [{name: "意见建议", fid: 18}, {name: "站务公告", fid: 17}, {name: "地铁族网刊", fid: 146}]
+                    }].forEach(e => {
+                        let category = cE({
+                            type: "div",
+                            attr: [["class", "pg-mainCategory"]],
+                            innerHTML: "<span>" + e.title + "</span>"
+                        });
+                        let subCategoryWrap = cE({type: "div", attr: [["class", "pg-subCategoryWrap"]]});
+                        e.subCategory.forEach(i => {
+                            let subCategory = cE({type: "div", attr: [["class", "pg-subCategory"]], innerText: i.name});
+                            subCategory.onclick = () => {
+                                loadForum(i.fid, 1);
+                                document.body.removeChild(pg.$('#pg-app-filter-categorySelector')[0]);
+                                pg.$('#pg-categorySelectorWrap')[0].classList.remove('active')
+                            };
+                            subCategoryWrap.append(subCategory);
+                        });
+                        category.append(subCategoryWrap);
+                        category.onclick = () => {
+                            category.classList.contains("active") ? category.classList.remove("active") : category.classList.add("active");
+                        };
+                        filter.onclick = () => {
+                            document.body.removeChild(pg.$('#pg-app-filter-categorySelector')[0]);
+                            pg.$('#pg-categorySelectorWrap')[0].classList.remove('active')
+                        }
+                        categorys.append(category);
+                    });
+                    document.body.append(categorys);
+                    pg.$(".topNav .rightToggle")[0].onclick = () => {
+                        categorys.classList.add("active");
+                        document.body.append(cE({
+                            type: "div",
+                            attr: [["style", "width:100%;height:100%;position:fixed;z-index:1000;background:var(--black500);left:0;top:0;"], ["id", "pg-app-filter-categorySelector"]],
+                            onclick: () => {
+                                document.body.removeChild(pg.$('#pg-app-filter-categorySelector')[0]);
+                                pg.$('#pg-categorySelectorWrap')[0].classList.remove('active')
+                            }
+                        }))
+                    };
+                } // category Wrap
+                loadingInf.innerHTML = "Parsing Data... " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"});
+                window.doc = new DOMParser().parseFromString(xhr.responseText, "text/html");
+                window.$ = (selector) => {
+                    return doc.querySelectorAll(selector);
+                };
+                {
+                    let focus_top = $("#portal_block_58_content")[0].children;
+                    app.appendChild(cE({
+                        type: "div",
+                        attr: [["id", "pg-focus-topWrap"]],
+                        innerHTML: "<h2>" + focus_top[0].children[0].innerHTML + "</h2><p>" + focus_top[1].innerHTML + "</p>",
+                        onclick: () => {
+                            loadThread(focus_top[0].children[0].href.substring(focus_top[0].children[0].href.indexOf("thread-") + 7, focus_top[0].children[0].href.indexOf("-1")), 0)
+                        }
+                    }));
+                    let focus_other_wrap = cE({type: "div", attr: [["id", "pg-focus-otherWrap"]]});
+                    [...$(".comiis_onemiddleulone.clearfix li")].map(i => i.children).forEach(e => {
+                        focus_other_wrap.append(cE({
+                            type: "div",
+                            attr: [["class", "pg-focus-otherItem"]],
+                            innerHTML: "<span class='pg-focus-otherItem-category'>" + e[1].innerHTML + "</span><span class='seperator'>|</span><span class='pg-focus-otherItem-content'>" + e[2].innerHTML + "</span><span class='pg-focus-otherItem-author'>" + e[0].children[0].innerHTML + "</span>",
+                            onclick: () => {
+                                loadThread(e[2].href.substring(e[2].href.indexOf("thread-") + 7, e[2].href.indexOf("-1")), 0)
+                            }
+                        }));
+                        app.append(focus_other_wrap);
+                    });
+                } // Today's Focus
+                {
+                    let request = new XMLHttpRequest();
+                    request.open("GET", "http://www.ditiezu.com/forum.php?mod=rss");
+                    request.send();
+                    let wrap = cE({type: "div", attr: [["id", "pg-indexBlogPage"]]});
+                    request.onreadystatechange = () => {
+                        let feeds = cE({type: "div", attr: [["id", "pg-indexFeeds"], ["class", "active"]]});
+                        if (request.readyState === 4) {
+                            XMLParser(feeds, request);
+                            wrap.append(feeds);
+                        }
+                    };
+                    app.append(wrap);
+                } // RSS Feeds
+                app.append(cE({
+                    type: "div",
+                    attr: [["style", "text-align:center;font-size:12px;margin-bottom: 48px;padding-bottom: 16px;"]],
+                    innerText: "Powered By PassionPenguin."
+                }));
+                loadingInf.innerHTML = "Finished. " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"});
+                setTimeout(() => {
+                    loadingInf.style.opacity = "0";
+                }, 1000);
+            }
+        };
+        window.onscroll = () => {
+
+        }
+    };
+    window.onload = window.onpopstate = () => {
+        try {
+            [...pg.$("#pg-app-filter-categorySelector")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+            [...pg.$("#pg-categorySelectorWrap")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+            [...pg.$("#threadUtilCtrlWrap")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+        } catch (e) {
+        }
+        if (!window.navigator.onLine)
+            pg.alert("No Internet Connection", "ERR_INTERNET_DISCONNECTED", "Onload/Onpopstate Func", () => {
+            });
+        if (getPara("mod") === "viewforum") loadForum(getPara("fid"), getPara("page"))
+        else if (getPara("mod") === "viewthread") loadThread(getPara("tid"), getPara("page"))
+        else mainPage();
+    };
+    window.loadForum = (category, page, option) => {
+        try {
+            [...pg.$("#pg-app-filter-categorySelector")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+            [...pg.$("#pg-categorySelectorWrap")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+            [...pg.$("#threadUtilCtrlWrap")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+        } catch (e) {
+        }
+        if (!window.navigator.onLine)
+            pg.alert("No Internet Connection", "ERR_INTERNET_DISCONNECTED", "Onload/Onpopstate Func", () => {
+            });
+        option = option || {showmore: false, lastPage: 0};
+        if (category === undefined || isNaN(category) && isNaN(Int(category)))
+            category = 23;
+        page = page || 1;
+        let topNav = pg.$(".topNav")[0];
+        topNav.classList.remove("no_back");
+        topNav.querySelectorAll(".leftToggle")[0].onclick = () => {
+            mainPage();
+        };
+        let loadingInf = pg.$("#loadingInf").length === 0 ? cE({
+            type: "div",
+            attr: [["style", "position:fixed;bottom:56px;width:100%;left:0;height:32px;font-size:14px;padding-left:20px;line-height:24px;background:var(--white);white-space:pre-wrap;overflow:hidden;"], ["id", "loadingInf"]]
+        }) : pg.$("#loadingInf")[0];
+        loadingInf.innerHTML = "Fetching Data from fid " + category + " & page " + page + "... " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"});
+        loadingInf.style.opacity = "unset";
+        document.body.append(loadingInf);
+        let app = pg.$("#pg-app")[0];
+        if (option.showmore !== true)
+            app.innerHTML = "";
+        let xhr = new XMLHttpRequest();
+        xhr.open("get", "http://www.ditiezu.com/forum.php?mod=forumdisplay&fid=" + category + "&page=" + page);
+        xhr.send();
+        xhr.onreadystatechange = () => {
+            history.pushState({
+                "mod": "viewforum",
+                "fid": category,
+                "page": page
+            }, "", "?mod=viewforum&fid=" + category + "&page=" + page);
+            if (xhr.readyState === 4 && xhr.status !== 200) {
+                loadingInf.innerHTML = "ErrCode:" + xhr.status;
+            } else if (xhr.readyState === 4) {
+                {
+                    let categorys = cE({
+                        type: "div",
+                        attr: [["id", "pg-categorySelectorWrap"]],
+                        innerHTML: "<span>选择分区</span>"
+                    });
+                    let filter = cE({type: "div", attr: [["id", "pg-app-filter-categorySelector"]]});
+                    document.body.append(filter);
+                    [
+                        {
+                            title: "都市地铁",
+                            subCategory: [{name: "北京区", fid: 7}, {name: "天津区", fid: 6}, {name: "上海区", fid: 8}, {
+                                name: "广州区",
+                                fid: 23
+                            }, {name: "长春区", fid: 40}, {name: "大连区", fid: 41}, {name: "武汉区", fid: 39}, {
+                                name: "重庆区",
+                                fid: 38
+                            }, {name: "深圳区", fid: 24}, {name: "南京区", fid: 22}, {name: "成都区", fid: 53}, {
+                                name: "沈阳区",
+                                fid: 50
+                            }, {name: "佛山区", fid: 56}, {name: "西安区", fid: 54}, {name: "苏州区", fid: 51}, {
+                                name: "昆明区",
+                                fid: 70
+                            }, {name: "杭州区", fid: 52}, {name: "哈尔滨区", fid: 55}, {name: "郑州区", fid: 64}, {
+                                name: "长沙区",
+                                fid: 67
+                            }, {name: "宁波区", fid: 65}, {name: "无锡区", fid: 68}, {name: "青岛区", fid: 66}, {
+                                name: "南昌区",
+                                fid: 71
+                            }, {name: "福州区", fid: 72}, {name: "东莞区", fid: 75}, {name: "南宁区", fid: 73}, {
+                                name: "合肥区",
+                                fid: 74
+                            }, {name: "石家庄区", fid: 140}, {name: "贵阳区", fid: 76}, {name: "厦门区", fid: 77}, {
+                                name: "乌鲁木齐区",
+                                fid: 143
+                            }, {name: "温州区", fid: 142}, {name: "济南区", fid: 148}, {name: "兰州区", fid: 78}, {
+                                name: "常州区",
+                                fid: 48
+                            }, {name: "徐州区", fid: 144}, {name: "呼和浩特区", fid: 151}, {name: "香港区", fid: 28}, {
+                                name: "澳门区",
+                                fid: 79
+                            }, {name: "台湾区", fid: 36}, {name: "海外区", fid: 47}, {name: "综合区", fid: 37}]
+                        }, {title: "轨道文化", subCategory: [{name: "轨道收藏", fid: 33}, {name: "都市风情", fid: 16}]}, {
+                        title: "生活休闲",
+                        subCategory: [{name: "地铁房产", fid: 31}, {name: "地铁美食", fid: 15}, {name: "交易市场", fid: 60}, {
+                            name: "轨交游戏",
+                            fid: 145
+                        }, {name: "站前广场", fid: 21}]
+                    }, {
+                        title: "铁道讨论",
+                        subCategory: [{name: "城际高铁", fid: 46}, {name: "机车车辆", fid: 45}, {name: "轨道知识", fid: 43}]
+                    }, {title: "合作分区", subCategory: [{name: "地铁的真相", fid: 150}, {name: "都市快轨交通", fid: 152}]}, {
+                        title: "管理专区",
+                        subCategory: [{name: "意见建议", fid: 18}, {name: "站务公告", fid: 17}, {name: "地铁族网刊", fid: 146}]
+                    }].forEach(e => {
+                        let category = cE({
+                            type: "div",
+                            attr: [["class", "pg-mainCategory"]],
+                            innerHTML: "<span>" + e.title + "</span>"
+                        });
+                        let subCategoryWrap = cE({type: "div", attr: [["class", "pg-subCategoryWrap"]]});
+                        e.subCategory.forEach(i => {
+                            let subCategory = cE({type: "div", attr: [["class", "pg-subCategory"]], innerText: i.name});
+                            subCategory.onclick = () => {
+                                loadForum(i.fid, 1);
+                                document.body.removeChild(pg.$('#pg-app-filter-categorySelector')[0]);
+                                pg.$('#pg-categorySelectorWrap')[0].classList.remove('active')
+                            };
+                            subCategoryWrap.append(subCategory);
+                        });
+                        category.append(subCategoryWrap);
+                        category.onclick = () => {
+                            category.classList.contains("active") ? category.classList.remove("active") : category.classList.add("active");
+                        };
+                        filter.onclick = () => {
+                            document.body.removeChild(pg.$('#pg-app-filter-categorySelector')[0]);
+                            pg.$('#pg-categorySelectorWrap')[0].classList.remove('active')
+                        }
+                        categorys.append(category);
+                    });
+                    document.body.append(categorys);
+                    pg.$(".topNav .rightToggle")[0].onclick = () => {
+                        categorys.classList.add("active");
+                        document.body.append(cE({
+                            type: "div",
+                            attr: [["style", "width:100%;height:100%;position:fixed;z-index:1000;background:var(--black500);left:0;top:0;"], ["id", "pg-app-filter-categorySelector"]],
+                            onclick: () => {
+                                document.body.removeChild(pg.$('#pg-app-filter-categorySelector')[0]);
+                                pg.$('#pg-categorySelectorWrap')[0].classList.remove('active')
+                            }
+                        }))
+                    };
+                } // category Wrap
+                loadingInf.innerHTML = "Parsing Data... " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"});
+                window.doc = new DOMParser().parseFromString(xhr.responseText, "text/html");
+                window.$ = (selector) => {
+                    return doc.querySelectorAll(selector);
+                };
+                let lastPage;
+                if (option.lastPage === 0)
+                    lastPage = $(".last")[0].innerHTML.substr($(".last")[0].innerHTML.includes("...") ? 4 : 0)
+                else lastPage = option.lastPage;
+                {
+                    let threadCategory = [...$("tbody[id^='normalthread_'] th>em a")].map(i => i.innerHTML);
+                    let threadContent = [...$("tbody[id^='normalthread_'] th>a.xst")].map(i => [i.innerHTML, i.href]);
+                    let threadPostAuthor = [...$("tbody[id^='normalthread_'] td.by:not(.kmhf) cite a")].map(i => i.innerHTML);
+                    let normalThreadWrap;
+                    if (option.showmore === true)
+                        normalThreadWrap = pg.$("#normalThreadWrap")[0];
+                    else
+                        normalThreadWrap = cE({type: "div", attr: [["id", "normalThreadWrap"]]});
+                    for (let i = 0; i < threadContent.length; i++)
+                        normalThreadWrap.append(cE({
+                            type: "div",
+                            attr: [["class", "normalthread"]],
+                            innerHTML: (threadCategory[i] !== undefined ? ("<span class='threadCategory'>" + threadCategory[i] + "</span>") : "") + "<span class='threadContent'>" + threadContent[i][0] + "</span><span class='threadAuthor'>" + threadPostAuthor[i] + "</span>",
+                            onclick: () => {
+                                console.log(threadContent[i][1], threadContent[i][1].substring(threadContent[i][1].indexOf("thread-") + 7, threadContent[i][1].indexOf("-1")));
+                                loadThread(threadContent[i][1].substring(threadContent[i][1].indexOf("thread-") + 7, threadContent[i][1].indexOf("-1")))
+                            }//"http://www.ditiezu.com/thread-662441-1-1.html"
+                        }));
+                    if (option.showmore !== true)
+                        app.append(normalThreadWrap);
+                } // Common Threads
+                if (option.showmore !== true)
+                    app.append(cE({
+                        type: "div",
+                        attr: [["style", "text-align:center;font-size:12px;margin-bottom: 48px;padding-bottom: 16px;"]],
+                        innerText: "Powered By PassionPenguin."
+                    }));
+                loadingInf.innerHTML = "Finished. " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"});
+                setTimeout(() => {
+                    loadingInf.style.opacity = "0";
+                }, 1000);
+                let loadNextPage = () => {
+                    if ((page < (Int(lastPage) + 1)) && window.scrollY + window.innerHeight > document.documentElement.offsetHeight - 150) {
+                        window.onscroll = loadNextPage = () => {
+
+                        }
+                        loadForum(category, Int(page) + 1, {showmore: true, lastPage: lastPage});
+                    }
+                }
+                setTimeout(() => {
+                    window.onscroll = () => {
+                        loadNextPage();
+                    }
+                }, 1000);
+            }
+        };
+    };
+    window.loadThread = (threadId, page, option) => {
+        try {
+            [...pg.$("#pg-app-filter-categorySelector")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+            [...pg.$("#pg-categorySelectorWrap")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+            [...pg.$("#threadUtilCtrlWrap")].forEach((e) => {
+                document.body.removeChild(e)
+            });
+        } catch (e) {
+        }
+        if (!window.navigator.onLine)
+            pg.alert("No Internet Connection", "ERR_INTERNET_DISCONNECTED", "Onload/Onpopstate Func", () => {
+            });
+        option = option || {showmore: false, lastPage: 0};
+        page = page === "0" ? 1 : (page || 1);
+        let loadingInf = pg.$("#loadingInf").length === 0 ? cE({
+            type: "div",
+            attr: [["style", "position:fixed;bottom:56px;width:100%;left:0;height:32px;font-size:14px;padding-left:20px;line-height:24px;background:var(--white);white-space:pre-wrap;overflow:hidden;"], ["id", "loadingInf"]]
+        }) : pg.$("#loadingInf")[0];
+        loadingInf.innerHTML = "Fetching Data from tid " + threadId + " & page " + page + "... " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"});
+        loadingInf.style.opacity = "unset";
+        document.body.append(loadingInf);
+        let app = pg.$("#pg-app")[0];
+        if (option.showmore !== true) {
+            app.innerHTML = "";
+            console.log("should remove content");
+        }
+        console.log("http://www.ditiezu.com/forum.php?mod=viewthread&tid=" + threadId + "&page=" + page);
+        sys.XHR(("http://www.ditiezu.com/forum.php?mod=viewthread&tid=" + threadId + "&page=" + page), (res, code
+            ) => {
+                window.res = res;
+                if (!res.includes("id=\"um\""))
+                    pg.alert("需要登录才能拉取数据", "ERR_NOT_LOGIN", "Fetching Feeds", () => {
+                        pg.alert("请在新开的页面中，按照常路登录\n确认登录后，重启应用", "", "Loging Info", () => {
+                            if (typeof android.changeToMobileUA !== "undefined")
+                                android.changeToMobileUA();
+                            if (typeof android.openLoginWindow !== "undefined")
+                                android.openLoginWindow();
+                        })
+                    });
+                else if (typeof android.changeToDesktopUA !== "undefined")
+                    android.changeToDesktopUA();
+                history.pushState({
+                    "mod": "viewthread",
+                    "tid": threadId,
+                    "page": page
+                }, "", "?mod=viewthread&tid=" + threadId + "&page=" + page);
+                if (code !== 200) {
+                    loadingInf.innerHTML = "ErrCode:" + code;
+                } else {
+                    loadingInf.innerHTML = "Parsing Data... " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"});
+                    let topNav = pg.$(".topNav")[0];
+                    topNav.classList.remove("no_back");
+                    topNav.querySelectorAll(".leftToggle")[0].onclick = () => {
+                        if (res.indexOf("fid = ") === -1)
+                            history.back();
+                        else
+                            loadForum(res.substring(res.indexOf("fid = ") + 16, res.indexOf("tid = ") - 4), 1);
+                    };
+                    window.doc = new DOMParser().parseFromString(res, "text/html");
+                    window.$ = (selector) => {
+                        return doc.querySelectorAll(selector);
+                    };
+                    let lastPage;
+                    if (option.lastPage === 0)
+                        lastPage = [...$(".pgt .pg>*:not(.nxt)")].last() === undefined ? 0 : [...$(".pgt .pg>*:not(.nxt)")].last().innerHTML.substr([...$(".pgt .pg>*:not(.nxt)")].last().innerHTML.includes("...") ? 4 : 0);
+                    else lastPage = option.lastPage;
+                    if ($("#messagetext.alert_error").length > 0)
+                        pg.alert("对不起，您没有足够的权限", "Err_NO_PERMISSION", "Parsing XHR Response", () => {
+                            if (res.indexOf("fid = ") === -1)
+                                history.back();
+                            else
+                                loadForum(res.substring(res.indexOf("fid = ") + 16, res.indexOf("tid = ") - 4), 1);
+                        })
+                    else {
+                        if (option.showmore === true) {
+                            app.removeChild(app.lastElementChild);
+                        }
+                        {
+                            let threadPost = [];
+                            threadPost = [...$("div[id^='post_']>table[id^='pid']")].map((i, index) => [i.children[0].children, index]);
+                            let threadWrap = cE({type: "div", attr: [["class", "pg-threadWrap"]]});
+                            threadPost.forEach(e => {
+                                let c = e[0];
+                                let id = e[1];
+                                let thread = cE({type: "div", attr: [["class", "pg-threadPost"]]});
+                                let authorName = $(".authi .xw1")[id].innerHTML;
+                                let ThreadPostInfo = cE({type: "p", attr: [["class", "pg-threadPostMeta"]]});
+                                let postInfo = cE({type: "p", attr: [["class", "pg-threadPostInfo"]]});
+                                try {
+                                    let avatarLevel = [...[...c][0].children[0].children].filter(i => i.tagName === "DIV").filter(i => i.classList.value === "")[0].children;
+                                    let avatar = cE({
+                                        type: "img",
+                                        attr: [["src", avatarLevel[0].children[0].children[0].src], ["class", "pg-threadAuthorAvatar"], ["onerror", "this.src='http://www.ditiezu.com/uc_server/images/noavatar_middle.gif';"]]
+                                    });
+                                    let author = cE({
+                                        type: "p",
+                                        innerText: authorName,
+                                        attr: [["class", "pg-threadAuthorName"]]
+                                    });
+                                    let authorLevel = cE({
+                                        type: "p",
+                                        innerText: avatarLevel[1].children[0].children[0].innerHTML,
+                                        attr: [["class", "pg-threadAuthorLevel"]]
+                                    });
+                                    let authorInfo = cE({type: "div", attr: [["class", "pg-threadAuthorInfo"]]});
+                                    authorInfo.append(avatar);
+                                    let UsrInfoBox = cE({type: "p", attr: [["class", "pg-threadAuthorInfo"]]});
+                                    UsrInfoBox.append(author);
+                                    UsrInfoBox.append(authorLevel);
+                                    thread.append(authorInfo);
+                                    ThreadPostInfo.append(UsrInfoBox);
+                                    let threadContent = [...c][0].children[1].children;
+                                    let threadFloor = (page - 1) * 15 + id + 1;
+                                    let threadPostTime = $(".authi em")[id].textContent;
+                                    postInfo.append(cE({type: "span", innerText: "第" + threadFloor + "楼"}));
+                                    postInfo.append(cE({type: "span", innerHTML: "发表于 " + threadPostTime}));
+                                    ThreadPostInfo.append(postInfo);
+                                    thread.append(ThreadPostInfo);
+                                    // let pid = [...pg.$("#ct.wp>#postlist>div[id^='post_']")][id].id;
+                                    thread.append(cE({
+                                        type: "div",
+                                        attr: [["class", "postThreadContent"]],
+                                        innerHTML: threadContent[1].innerHTML.replace(/src="*".+zoomfile="/ig, "src=\"").replace(/static\//ig, "http://www.ditiezu.com/static/")
+                                    }));
+                                } catch (e) {
+                                    console.log(e);
+                                }
+                                // let threadUtil = cE({type: "div", attr: [["class", "threadUtil"]]});
+                                // let replyBTN = cE({
+                                //     type: "span",
+                                //     attr: [["class", "replyToThis"], ["rid", pid.substr(5)]],
+                                //     innerText: "回复"
+                                // });
+                                // replyBTN.onclick = () => {
+                                //     loadURL(id !== "0" ? ("http://www.ditiezu.com/forum.php?mod=post&action=reply&tid=" + tid + "&repquote=" + replyBTN.getAttribute("rid")) : "http://www.ditiezu.com/forum.php?mod=post&action=reply&tid=" + tid)
+                                // };
+                                // threadUtil.append(replyBTN);
+                                threadWrap.append(thread);
+                            });
+                            app.append(threadWrap);
+                        } // Common Threads
+                        if (option.showmore === true) {
+                            app.append(cE({
+                                type: "div",
+                                attr: [["style", "text-align:center;font-size:12px;margin-bottom: 48px;padding-bottom: 16px;"]],
+                                innerText: "Powered By PassionPenguin."
+                            }));
+                        }
+                        loadingInf.innerHTML = ("Finished. " + new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Hong_Kong"}));
+                        setTimeout(() => {
+                            loadingInf.style.opacity = "0";
+                        }, 1000);
+                        [...pg.$(".attm .mbn:first-child")].forEach((e) => {
+                            e.parentElement.removeChild(e);
+                        });
+                        [...pg.$("[onmouseover]")].forEach((e) => {
+                            e.setAttribute("onmouseover", "");
+                        });
+                        [...pg.$(".rate")].forEach(e => {
+                            e.querySelectorAll("a").forEach(i => {
+                                i.href = "javascript:void(0)";
+                                if (i.innerHTML === '收起' || i.innerHTML === '查看全部评分') i.parentElement.removeChild(i)
+                            })
+                        });
+                        [...pg.$(".ratl tr")].forEach(i => {
+                            for (let j = 1; j < i.children.length - 1; j++) {
+                                i.children[j].setAttribute("style", "width:" + (100 / (i.children.length - 2)) + "px!important;display:inline-block;text-align:center;")
+                            }
+                        });
+                        [...pg.$("[id^='attach']:not([id$='menu'])")].forEach((i, index) => {
+                            let parent = i.parentElement;
+                            let filename = i.children[0].innerHTML;
+                            let fileInfo = i.children[1].innerHTML;
+                            let imageUrl = "./assets/media/image/";
+                            let extName = filename.substring(filename.lastIndexOf("."), filename.length);
+                            console.log(filename);
+                            if (extName.match(/rar/i))
+                                imageUrl += "RAR.png";
+                            else if (extName.match(/zip/i))
+                                imageUrl += "ZIP.png";
+                            else if (extName.match(/7z/i))
+                                imageUrl += "7ZIP.png";
+                            else if (extName.match(/png/i))
+                                imageUrl += "PNG.png";
+                            else if (extName.match(/pdf/i))
+                                imageUrl += "PDF.png";
+                            else if (extName.match(/jpg/i))
+                                imageUrl += "JPG.png";
+                            else if (extName.match(/jpeg/i))
+                                imageUrl += "JPG.png";
+                            else if (extName.match(/gif/i))
+                                imageUrl += "GIF.png";
+                            parent.innerHTML = "";
+
+                            let displayName;
+                            if (filename.length > 20)
+                                displayName = filename.substring(0, 20) + "..." + extName;
+                            else displayName = filename;
+                            let file = cE({
+                                type: "div",
+                                innerHTML: "<img src='" + imageUrl + "' alt='file_'" + extName + "' /><span class='filename'>" + displayName + "</span><span class='fileDescription'>" + fileInfo + "</span>",
+                                attr: [["class", "attachFile"]]
+                            });
+                            file.onclick = () => {
+                                pg.confirm("确认要下载？", "CNF_ONDOWNLOADING_ATTACHMENT", (res) => {
+                                    if (res) {
+                                        window.doc = new DOMParser().parseFromString(sys.XHR(i.children[0].href), "text/html");
+                                        sys.downloadFile(new DOMParser().parseFromString(sys.XHR(i.children[0].href), "text/html").querySelector("#messagetext a[href]").href, filename);
+                                        // Download file
+                                    }
+                                });
+                            }
+                            parent.appendChild(file);
+                        });
+                        [...pg.$("img[onclick][file][src]")].forEach((e) => {
+                            e.setAttribute("onclick", "zoomImage(this,this.src)");
+                        });
+                        let loadNextPage = () => {
+                            if ((page < Int(lastPage)) && window.scrollY + window.innerHeight > document.documentElement.offsetHeight - 24) {
+                                window.onscroll = loadNextPage = () => {
+
+                                }
+                                loadThread(threadId, Int(page) + 1, {showmore: true, lastPage: lastPage});
+                            }
+                        }
+                        setTimeout(() => {
+                            window.onscroll = () => {
+                                loadNextPage();
+                            }
+                        }, 1000);
+                        if (pg.$("#threadUtilCtrlWrap").length !== 0)
+                            document.body.removeChild(pg.$("#threadUtilCtrlWrap")[0]);
+                        let threadUtilCtrlWrap = cE({type: "div", attr: [["id", "threadUtilCtrlWrap"]]});
+                        document.body.append(threadUtilCtrlWrap);
+                        threadUtilCtrlWrap.append(cE({
+                            type: "div", attr: [["id", "threadPageCtrl"]], onclick: () => {
+                                threadUtilCtrlWrap.classList.remove("active");
+                                // choose Page
+                            }, innerHTML: "当前页面 " + page
+                        }));
+                        threadUtilCtrlWrap.append(cE({
+                            type: "div", attr: [["id", "shareThread"]], innerHTML: "分享地址", onclick: () => {
+                                threadUtilCtrlWrap.classList.remove("active");
+                                // sys.copy("http://www.ditiezu.com/thread-"+threadId+"-"+page+"-1.html")
+                            }
+                        }))
+                        pg.$(".topNav .rightToggle")[0].onclick = () => {
+                            threadUtilCtrlWrap.classList.contains("active") ? threadUtilCtrlWrap.classList.remove("active") : threadUtilCtrlWrap.classList.add("active");
+                            if (threadUtilCtrlWrap.classList.contains("active"))
+                                window.addEventListener("click", () => {
+                                    threadUtilCtrlWrap.classList.remove("active");
+                                }, true)
+                        }
+                    }
+                }
+            }
+        )
+    }
+    let EventUtil = {
+        addHandler: function (element, type, handler) {
+            if (element.addEventListener) {
+                element.addEventListener(type, handler, false);
+            } else if (element.attachEvent) {
+                element.attachEvent("on" + type, handler);
+            } else {
+                element["on" + type] = handler;
+            }
+        }
+    };
+    EventUtil.addHandler(window, "online", function () {
+        let loadingInf = pg.$("#loadingInf").length === 0 ? cE({
+            type: "div",
+            attr: [["style", "position:fixed;bottom:56px;width:100%;left:0;height:32px;font-size:14px;padding-left:20px;line-height:24px;background:var(--white);white-space:pre-wrap;overflow:hidden;"], ["id", "loadingInf"]]
+        }) : pg.$("#loadingInf")[0];
+        loadingInf.innerHTML = "Current Network Status: Online";
+        loadingInf.style.opacity = "unset";
+        document.body.append(loadingInf);
+        setTimeout(() => {
+            loadingInf.style.opacity = "0";
+        }, 2000)
+    });
+    EventUtil.addHandler(window, "offline", function () {
+        let loadingInf = pg.$("#loadingInf").length === 0 ? cE({
+            type: "div",
+            attr: [["style", "position:fixed;bottom:56px;width:100%;left:0;height:32px;font-size:14px;padding-left:20px;line-height:24px;background:var(--white);white-space:pre-wrap;overflow:hidden;"], ["id", "loadingInf"]]
+        }) : pg.$("#loadingInf")[0];
+        loadingInf.innerHTML = "Current Network Status: Offline";
+        loadingInf.style.opacity = "unset";
+        document.body.append(loadingInf);
+    });
+    window.loadEditor = (type, fid, tid, formhash) => {
+        let editorWindow = cE({type: "div", attr: [["pg-editor-wrap"]]});
+        let xhr = sys.XHRPOST("");
+    }
+</script>
+</html>
